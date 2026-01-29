@@ -1,0 +1,26 @@
+{
+  "name": "nuwa-facilitator-test",
+  "version": "1.0.0",
+  "description": "Simple x402 facilitator test with hardcoded weather API",
+  "type": "module",
+  "scripts": {
+    "server": "tsx src/server.ts",
+    "client": "tsx src/client.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.7",
+    "@x402/core": "^2.1.0",
+    "@x402/evm": "^2.0.0",
+    "@x402/fetch": "^2.1.0",
+    "@x402/hono": "^2.0.0",
+    "@x402x/extensions": "^2.4.0",
+    "dotenv": "^16.4.5",
+    "hono": "^4.10.8",
+    "viem": "^2.21.26"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
