@@ -1,4 +1,4 @@
-import { x402Client, x402HTTPClient } from "@x402/core/client";
+import { x402Client } from "@x402/core/client";
 import { wrapFetchWithPayment } from "@x402/fetch";
 import { privateKeyToAccount } from "viem/accounts";
 import { registerX402xScheme } from "@x402x/extensions";
@@ -26,7 +26,7 @@ type WeatherResponse = {
 async function main() {
   const chainType = process.env.SKALE_BASE_NETWORK || "testnet";
 
-  const currentChain = chainType == "mainnet" ? skaleBase : skaleBaseSepolia;
+  const currentChain = chainType === "mainnet" ? skaleBase : skaleBaseSepolia;
 
   const baseUrl = process.env.BASE_URL || "http://localhost:3001";
   const privateKey = process.env.PRIVATE_KEY;
@@ -42,11 +42,8 @@ async function main() {
 
   // Setup x402 client
   const coreClient = new x402Client();
-  const networkId = ("eip155:" + networkChainId) as `0x${string}:${string}`;
+  const networkId = `eip155:${networkChainId}` as `${string}:${string}`;
   registerX402xScheme(coreClient, networkId, account);
-
-  const httpClient = new x402HTTPClient(coreClient);
-
 
   const fetchWithDebug = async (
     input: string | URL | Request,
@@ -97,7 +94,6 @@ async function main() {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        
       },
     });
 

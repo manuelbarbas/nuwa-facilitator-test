@@ -3,7 +3,8 @@ export const skaleBaseSepolia: any = {
   name: "SKALE Base Sepolia Testnet",
   rpcUrls: {
     default: {
-      http: ["https://base-sepolia-testnet.skalenodes.com/v1/base-testnet"]
+      // Keep aligned with @x402x/extensions built-in chain config
+      http: ["https://base-sepolia-testnet.skalenodes.com/v1/jubilant-horrible-ancha"]
     }
   },
   blockExplorers: {
