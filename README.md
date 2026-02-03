@@ -25,10 +25,12 @@ npm install
 ```
 
 2. Configure `.env`:
-   - `PRIVATE_KEY`: Your wallet private key
-   - `RECEIVING_ADDRESS`: Address to receive payments
+   - Copy `.env.example` to `.env`
+   - `PRIVATE_KEY`: Wallet private key for the client
+   - `RECEIVING_ADDRESS`: Merchant address to receive payments (NOT the settlement router)
    - `FACILITATOR_URL`: x402 facilitator URL (default: https://facilitator.x402x.dev)
-   - `NETWORK_CHAIN_ID`: SKALE Base chain ID (1187947933)
+   - `SKALE_BASE_NETWORK`: `"mainnet"` or `"testnet"` (default: `mainnet`)
+   - `BASE_URL`: Server base URL for the client (default: http://localhost:3001)
    - `PORT`: Server port (default: 3001)
 
 ## Usage

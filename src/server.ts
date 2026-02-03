@@ -7,16 +7,30 @@ import type { RouteConfig as X402RouteConfig } from "@x402/core/server";
 import { HTTPFacilitatorClient } from "@x402/core/http";
 import {
   registerRouterSettlement,
+  registerSettlementHooks,
   createSettlementRouteConfig,
-  TransferHook,
 } from "@x402x/extensions";
-import {skaleBase,skaleBaseSepolia} from "./custom-chain";
+import { skaleBase, skaleBaseSepolia } from "./custom-chain";
 import "dotenv/config";
 
 const app = new Hono();
 const PORT = Number(process.env.PORT) || 3001;
 
-app.use("*", cors());
+app.use(
+  "/*",
+  cors({
+    origin: "*",
+    credentials: false,
+    exposeHeaders: ["PAYMENT-REQUIRED", "PAYMENT-RESPONSE"],
+    allowHeaders: [
+      "Content-Type",
+      "PAYMENT-SIGNATURE",
+      "PAYMENT-RESPONSE",
+      "X-PAYMENT-SIGNATURE",
+      "X-PAYMENT-RESPONSE",
+    ],
+  }),
+);
 
 // Hardcoded weather data for London
 const LONDON_WEATHER = {
@@ -33,20 +47,20 @@ const LONDON_WEATHER = {
 };
 
 async function setupWeatherRoute() {
-
   const chainType = process.env.SKALE_BASE_NETWORK || "testnet";
 
-  const currentChain = chainType == "mainnet" ? skaleBase : skaleBaseSepolia
+  const currentChain = chainType === "mainnet" ? skaleBase : skaleBaseSepolia;
 
   const facilitatorUrl = process.env.FACILITATOR_URL;
-  const receivingAddress = process.env.SETTLEMENT_ROUTER as `0x${string}`;
+  const receivingAddress = process.env.RECEIVING_ADDRESS as `0x${string}`;
   const networkChainId = currentChain.id;
 
-  console.log(networkChainId);
+  const network = `eip155:${networkChainId}`;
+  console.log("[Server] Using network:", network);
 
   if (!facilitatorUrl || !receivingAddress) {
     console.error("Missing required environment variables");
-    throw new Error("FACILITATOR_URL and SETTLEMENT_ROUTER are required");
+    throw new Error("FACILITATOR_URL and RECEIVING_ADDRESS are required");
   }
 
   const facilitatorClient = new HTTPFacilitatorClient({
@@ -55,26 +69,31 @@ async function setupWeatherRoute() {
 
   const resourceServer = new x402ResourceServer(facilitatorClient);
 
-  registerExactEvmScheme(resourceServer, {});
+  registerExactEvmScheme(resourceServer, {
+    // Allow any EIP-155 network; x402x defines default assets per supported network.
+    networks: ["eip155:*"],
+  });
   registerRouterSettlement(resourceServer);
-  
+  registerSettlementHooks(resourceServer);
+
   await resourceServer.initialize();
 
   const routes = {
-    "/api/weather": createSettlementRouteConfig(
+    "GET /api/weather": createSettlementRouteConfig(
       {
         accepts: {
           scheme: "exact",
-          network: "eip155:" + networkChainId,
+          network,
+          // Merchant address (final recipient). createSettlementRouteConfig will automatically
+          // override payTo to the network settlementRouter and set finalPayTo to this value.
           payTo: receivingAddress,
           price: "$0.10",
         },
       },
       {
-        hook: TransferHook.getAddress("eip155:" + networkChainId),
-        hookData: TransferHook.encode(),
-        facilitatorFee: "10000",
-      }
+        // Dynamic fee: query facilitator /calculate-fee on 402 probe
+        facilitatorUrl,
+      },
     ) as X402RouteConfig,
   };
 
